@@ -23,7 +23,7 @@ mod dayTODO_tests {
     #[test]
     fn test_part_one_example() {
         // TODO
-        let expected = Some(11);
+        let expected = Some(-1);
 
         assert_eq!(DayStruct.part_one(EXAMPLE), expected);
     }
@@ -31,7 +31,7 @@ mod dayTODO_tests {
     #[test]
     fn test_part_two_example() {
         // TODO
-        let expected = Some(31);
+        let expected = Some(-1);
 
         assert_eq!(DayStruct.part_two(EXAMPLE), expected);
     }
