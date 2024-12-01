@@ -56,7 +56,7 @@ pub fn generate_days_enum(_input: TokenStream) -> TokenStream {
             Self::#variant_ident => {
                 let input = std::fs::read_to_string(#input_path)
                     .expect("Failed to load input file");
-                #module_ident::DayStruct.part_one(&input)
+                Box::new(#module_ident::DayStruct.part_one(&input))
             }
         }
     });
@@ -74,7 +74,7 @@ pub fn generate_days_enum(_input: TokenStream) -> TokenStream {
             Self::#variant_ident => {
                 let input = std::fs::read_to_string(#input_path)
                     .expect("Failed to load input file");
-                #module_ident::DayStruct.part_two(&input)
+                Box::new(#module_ident::DayStruct.part_two(&input))
             }
         }
     });
@@ -92,13 +92,13 @@ pub fn generate_days_enum(_input: TokenStream) -> TokenStream {
                 }
             }
 
-            pub fn part_one(&self) -> impl std::fmt::Debug {
+            pub fn part_one(&self) -> Box<dyn std::fmt::Debug> {
                 match self {
                     #(#part_one_arms)*
                 }
             }
 
-            pub fn part_two(&self) -> impl std::fmt::Debug {
+            pub fn part_two(&self) -> Box<dyn std::fmt::Debug> {
                 match self {
                     #(#part_two_arms)*
                 }
