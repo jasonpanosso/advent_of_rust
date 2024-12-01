@@ -35,6 +35,8 @@
             rust-analyzer
             rustfmt
             clippy
+
+            aoc-cli
           ];
         };
       });
