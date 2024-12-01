@@ -127,15 +127,15 @@ pub fn generate_day_modules(_input: TokenStream) -> TokenStream {
         }
     }
 
-    let pub_uses = modules.iter().map(|module| {
+    let uses = modules.iter().map(|module| {
         let module_ident = syn::Ident::new(module, proc_macro2::Span::call_site());
         quote! {
-            pub mod #module_ident;
+            mod #module_ident;
         }
     });
 
     let expanded = quote! {
-        #(#pub_uses)*
+        #(#uses)*
     };
 
     expanded.into()
