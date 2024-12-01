@@ -1,0 +1,38 @@
+use super::Day;
+
+pub struct DayStruct;
+impl Day for DayStruct {
+    type Output = Option<i32>;
+
+    fn part_one(&self, _input: &str) -> Self::Output {
+        None
+    }
+
+    fn part_two(&self, _input: &str) -> Self::Output {
+        None
+    }
+}
+
+#[cfg(test)]
+// TODO
+mod dayTODO_tests {
+    use super::*;
+
+    const EXAMPLE: &str = include_str!("../../../data/examples/dayTODO.txt"); // TODO
+
+    #[test]
+    fn test_part_one_example() {
+        // TODO
+        let expected = Some(11);
+
+        assert_eq!(DayStruct.part_one(EXAMPLE), expected);
+    }
+
+    #[test]
+    fn test_part_two_example() {
+        // TODO
+        let expected = Some(31);
+
+        assert_eq!(DayStruct.part_two(EXAMPLE), expected);
+    }
+}
