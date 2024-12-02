@@ -50,7 +50,7 @@ pub fn generate_days_enum(_input: TokenStream) -> TokenStream {
             proc_macro2::Span::call_site(),
         );
         let module_ident = syn::Ident::new(module, proc_macro2::Span::call_site());
-        let binding = manifest_dir.join(format!("../data/inputs/day{:02}.txt", day_number));
+        let binding = manifest_dir.join(format!("src/days/day{:02}/input.txt", day_number));
         let input_path = binding.to_string_lossy();
         quote! {
             Self::#variant_ident => {
@@ -68,7 +68,7 @@ pub fn generate_days_enum(_input: TokenStream) -> TokenStream {
             proc_macro2::Span::call_site(),
         );
         let module_ident = syn::Ident::new(module, proc_macro2::Span::call_site());
-        let binding = manifest_dir.join(format!("../data/inputs/day{:02}.txt", day_number));
+        let binding = manifest_dir.join(format!("src/days/day{:02}/input.txt", day_number));
         let input_path = binding.to_string_lossy();
         quote! {
             Self::#variant_ident => {
@@ -92,13 +92,13 @@ pub fn generate_days_enum(_input: TokenStream) -> TokenStream {
                 }
             }
 
-            pub fn part_one(&self) -> Box<dyn std::fmt::Debug> {
+            pub fn part_one(&self) -> Box<dyn std::fmt::Display> {
                 match self {
                     #(#part_one_arms)*
                 }
             }
 
-            pub fn part_two(&self) -> Box<dyn std::fmt::Debug> {
+            pub fn part_two(&self) -> Box<dyn std::fmt::Display> {
                 match self {
                     #(#part_two_arms)*
                 }

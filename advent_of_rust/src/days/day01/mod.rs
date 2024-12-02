@@ -45,7 +45,7 @@ fn parse(input: &str) -> (Vec<i32>, Vec<i32>) {
 mod day1_tests {
     use super::*;
 
-    const EXAMPLE: &str = include_str!("../../../data/examples/day01.txt");
+    const EXAMPLE: &str = include_str!("./example.txt");
 
     #[test]
     fn test_part_one_example() {

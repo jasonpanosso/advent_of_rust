@@ -25,8 +25,8 @@ fn main() {
 
     if let Some(day) = days::Days::from_day_number(args.day) {
         match args.part {
-            Part::One => println!("{:?}", day.part_one()),
-            Part::Two => println!("{:?}", day.part_two()),
+            Part::One => println!("{}", day.part_one()),
+            Part::Two => println!("{}", day.part_two()),
         };
     } else {
         eprintln!("Day {} not implemented", args.day);
