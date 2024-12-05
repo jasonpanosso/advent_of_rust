@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[proc_macro]
 pub fn generate_days_enum(_input: TokenStream) -> TokenStream {
@@ -104,38 +104,6 @@ pub fn generate_days_enum(_input: TokenStream) -> TokenStream {
                 }
             }
         }
-    };
-
-    expanded.into()
-}
-
-#[proc_macro]
-pub fn generate_day_modules(_input: TokenStream) -> TokenStream {
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is not set");
-    let days_path = Path::new(&manifest_dir).join("src/days");
-
-    let mut modules = vec![];
-    if let Ok(entries) = fs::read_dir(&days_path) {
-        for entry in entries.flatten() {
-            if let Some(file_name) = entry.path().file_stem() {
-                if let Some(file_name_str) = file_name.to_str() {
-                    if file_name_str.starts_with("day") {
-                        modules.push(file_name_str.to_string());
-                    }
-                }
-            }
-        }
-    }
-
-    let uses = modules.iter().map(|module| {
-        let module_ident = syn::Ident::new(module, proc_macro2::Span::call_site());
-        quote! {
-            mod #module_ident;
-        }
-    });
-
-    let expanded = quote! {
-        #(#uses)*
     };
 
     expanded.into()
