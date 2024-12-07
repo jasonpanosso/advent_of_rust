@@ -1,12 +1,10 @@
-use std::collections::HashSet;
-
 use super::Day;
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq)]
 enum Token {
     Wall,
     Floor,
-    Seen(Vec<Direction>),
+    Seen,
 }
 
 #[derive(Clone, Copy, PartialEq, Hash, Eq)]
@@ -25,6 +23,15 @@ impl Direction {
             'v' => Some(Direction::Down),
             '<' => Some(Direction::Left),
             _ => None,
+        }
+    }
+
+    fn to_bit(self) -> u8 {
+        match self {
+            Direction::Up => 0b0001,
+            Direction::Right => 0b0010,
+            Direction::Down => 0b0100,
+            Direction::Left => 0b1000,
         }
     }
 
@@ -51,6 +58,7 @@ impl Token {
     fn from_char(ch: char) -> Token {
         match ch {
             '#' => Token::Wall,
+            '^' | '>' | 'v' | '<' => Token::Seen,
             _ => Token::Floor,
         }
     }
@@ -66,90 +74,109 @@ impl Day for DayStruct {
             .lines()
             .map(|line| line.chars().map(Token::from_char).collect())
             .collect();
-        tokens[row_start][col_start] = Token::Seen(vec![dir]);
 
         walk_tiles(&mut tokens, row_start, col_start, dir);
         tokens
             .iter()
-            .flat_map(|line| {
-                line.iter()
-                    .filter(|token| matches!(**token, Token::Seen(_)))
-            })
+            .flat_map(|line| line.iter().filter(|token| matches!(**token, Token::Seen)))
             .count() as i32
     }
 
     fn part_two(&self, input: &str) -> Self::Output {
         let (dir, row_start, col_start) = get_start(input);
-        let matrix: Vec<Vec<Token>> = input
+        let mut tokens: Vec<Vec<Token>> = input
             .lines()
             .map(|line| line.chars().map(Token::from_char).collect())
             .collect();
+        let rows = tokens.len();
+        let cols = tokens[0].len();
 
-        let mut count = 0;
-        for (r, line) in matrix.iter().enumerate() {
-            for (c, token) in line.iter().enumerate() {
-                if (r == row_start && c == col_start) || matches!(token, Token::Wall) {
-                    continue;
-                }
+        walk_tiles(&mut tokens, row_start, col_start, dir);
+        let visited: Vec<(usize, usize)> = tokens
+            .iter()
+            .enumerate()
+            .flat_map(|(r, row)| {
+                row.iter().enumerate().filter_map(move |(c, token)| {
+                    if matches!(token, Token::Seen) {
+                        Some((r, c))
+                    } else {
+                        None
+                    }
+                })
+            })
+            .collect();
 
-                if !can_escape(&matrix, row_start, col_start, dir, (r, c)) {
-                    count += 1;
-                }
+        let mut result = 0;
+        for &(row, col) in &visited {
+            if (row, col) == (row_start, col_start) {
+                continue;
             }
+
+            let original = std::mem::replace(&mut tokens[row][col], Token::Wall);
+            if !can_escape(&tokens, rows, cols, row_start, col_start, dir) {
+                result += 1;
+            }
+
+            tokens[row][col] = original;
         }
 
-        count
+        result
     }
 }
 
 fn can_escape(
     matrix: &[Vec<Token>],
-    start_row: usize,
-    start_col: usize,
-    start_dir: Direction,
-    new_wall: (usize, usize),
+    rows: usize,
+    cols: usize,
+    row: usize,
+    col: usize,
+    dir: Direction,
 ) -> bool {
-    let mut visited = HashSet::new();
-    let (mut row, mut col, mut dir) = (start_row, start_col, start_dir);
+    let mut visited = vec![0u8; rows * cols];
+    visited[row * cols + col] |= dir.to_bit();
+
+    let mut current_row = row;
+    let mut current_col = col;
+    let mut current_dir = dir;
 
     loop {
-        let (next_row, next_col) = dir.next_tile(row as i32, col as i32);
-        if next_row < 0
-            || next_col < 0
-            || next_row as usize >= matrix.len()
-            || next_col as usize >= matrix[next_row as usize].len()
-        {
-            return true;
-        }
+        let next = current_dir.next_tile(current_row as i32, current_col as i32);
+        let (next_row, next_col) = match conv_usize(next.0, next.1, matrix.len(), matrix[0].len()) {
+            Some(pos) => pos,
+            None => {
+                return true;
+            }
+        };
 
-        if (next_row as usize, next_col as usize) == new_wall
-            || matches!(matrix[next_row as usize][next_col as usize], Token::Wall)
-        {
-            dir = dir.turn_right();
-        } else {
-            row = next_row as usize;
-            col = next_col as usize;
-
-            if !visited.insert((row, col, dir)) {
-                return false;
+        match matrix[next_row][next_col] {
+            Token::Wall => {
+                current_dir = current_dir.turn_right();
+            }
+            _ => {
+                current_row = next_row;
+                current_col = next_col;
             }
         }
+
+        let next_index = next_row * cols + next_col;
+        let bit = current_dir.to_bit();
+        if visited[next_index] & bit != 0 {
+            return false;
+        }
+
+        visited[next_index] |= bit;
     }
 }
 
 fn walk_tiles(matrix: &mut [Vec<Token>], cur_row: usize, cur_col: usize, cur_dir: Direction) {
     let next = cur_dir.next_tile(cur_row as i32, cur_col as i32);
 
-    if next.0 >= 0
-        && next.1 >= 0
-        && next.0 < matrix.len() as i32
-        && next.1 < matrix[next.0 as usize].len() as i32
-    {
-        match matrix[next.0 as usize][next.1 as usize] {
+    if let Some((next_row, next_col)) = conv_usize(next.0, next.1, matrix.len(), matrix[0].len()) {
+        match matrix[next_row][next_col] {
             Token::Wall => walk_tiles(matrix, cur_row, cur_col, cur_dir.turn_right()),
             _ => {
-                matrix[next.0 as usize][next.1 as usize] = Token::Seen(vec![cur_dir]);
-                walk_tiles(matrix, next.0 as usize, next.1 as usize, cur_dir)
+                matrix[next_row][next_col] = Token::Seen;
+                walk_tiles(matrix, next_row, next_col, cur_dir)
             }
         }
     }
@@ -168,6 +195,14 @@ fn get_start(input: &str) -> (Direction, usize, usize) {
         .unwrap();
 
     (Direction::from_char(ch).unwrap(), row_start, col_start)
+}
+
+fn conv_usize(row: i32, col: i32, row_max: usize, col_max: usize) -> Option<(usize, usize)> {
+    if row >= 0 && col >= 0 && row < row_max as i32 && col < col_max as i32 {
+        Some((row as usize, col as usize))
+    } else {
+        None
+    }
 }
 
 #[cfg(test)]
